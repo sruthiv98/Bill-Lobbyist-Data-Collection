@@ -1,0 +1,240 @@
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+import requests
+import csv
+import time
+path_to_chromedriver = '/Users/Sruthi/Desktop/RA/chromedriver'
+browser = webdriver.Chrome(executable_path = path_to_chromedriver)
+
+url = 'http://www.leg.state.co.us/clics/cslFrontPages.nsf/PrevSessionInfo?OpenForm'
+browser.get(url)
+writeData = []
+otherData = []
+
+
+list = browser.find_elements_by_css_selector('font')
+year = 2015
+
+hb = False
+sb = False
+hcr = False
+hjm = False
+hm = False
+hjr = False
+hr = False
+scr = False
+sjm = False
+sm = False
+sjr = False
+sr = False
+
+chamberList = [hb,sb,hcr,hjm,hm,hjr,hr,scr,sjm,sm,sjr,sr]
+
+
+#year loop
+#for i in range(1):
+for i in range(54,60):
+    browser.get(url)
+    count = 1001
+    if i <= 84:
+        i += 6
+        #click on correct year
+        browser.find_elements_by_css_selector('font')[i].click()
+        print(str(i))
+        billURL = browser.current_url
+        frameBillRange = browser.find_element_by_name('bottom')
+        browser.switch_to_frame(frameBillRange)
+        list0 = browser.find_element_by_tag_name('form').find_element_by_name('Range').find_elements_by_tag_name('option')
+        #click on correct range
+        for billRange in range(20,len(list0)):
+            #print('BILL RANGE: ' + str(billRange))
+            #set all labeling flags to false
+            hb = False
+            sb = False
+            hcr = False
+            hjm = False
+            hm = False
+            hjr = False
+            hr = False
+            scr = False
+            sjm = False
+            sm = False
+            sjr = False
+            sr = False
+
+            browser.find_element_by_tag_name('form').find_element_by_name('Range').find_elements_by_tag_name('option')[billRange].click()
+            browser.find_element_by_tag_name('form').find_elements_by_tag_name('img')[2].click()
+
+
+
+
+            browser.switch_to_default_content()
+            frameAllHist = browser.find_element_by_name('Bottom2')
+            browser.switch_to_frame(frameAllHist)
+            browser.page_source
+
+            print('2')
+
+            if len(browser.find_elements_by_partial_link_text('HB')) > 0:
+                hb = True
+            if len(browser.find_elements_by_partial_link_text('SB')) > 0:
+                sb = True
+            if len(browser.find_elements_by_partial_link_text('HCR')) > 0:
+                hcr = True
+            if len(browser.find_elements_by_partial_link_text('HJM')) > 0:
+                hjm = True
+            if len(browser.find_elements_by_partial_link_text('HM')) > 0:
+                hm = True
+            if len(browser.find_elements_by_partial_link_text('HJR')) > 0:
+                hjr = True
+            if len(browser.find_elements_by_partial_link_text('HR')) > 0:
+                hr = True
+            if len(browser.find_elements_by_partial_link_text('SCR')) > 0:
+                scr = True
+            if len(browser.find_elements_by_partial_link_text('SJM')) > 0:
+                sjm = True
+            if len(browser.find_elements_by_partial_link_text('SM')) > 0:
+                sm = True
+            if len(browser.find_elements_by_partial_link_text('SJR')) > 0:
+                sjr = True
+            if len(browser.find_elements_by_partial_link_text('SR')) > 0:
+                sr = True
+
+
+            list1 = browser.find_elements_by_link_text('History')
+
+
+
+
+
+
+
+        #count = 3
+
+        #all the bills on one page
+        #for j in range(1):
+
+            for j in range(len(list1)):
+            #for j in range(3):
+                #click on bill hist
+                #if ??
+
+                titleSponserList = []
+
+                otherData.append(year)
+
+                bills = browser.find_elements_by_partial_link_text('.pdf')
+
+                billNum = str(bills[j].text)
+                billNum = billNum[5:]
+
+                otherData.append(billNum)
+
+                #print str(j)
+                title = browser.find_elements_by_xpath('//font')
+                for i in range(len(title)):
+                    if '.wpd' in str(title[i].text):
+                        titleSponserList.append(title[i+1])
+                print(titleSponserList[j].text)
+                titleSponser = titleSponserList[j].get_attribute('innerHTML').split('<br>')
+                for a in range(len(titleSponser)):
+                    otherData.append(titleSponser[a].strip())
+
+                browser.find_elements_by_link_text('History')[j].click()
+                time.sleep(.5)
+                frameHist = browser.find_elements_by_tag_name('frame')[1]
+                browser.switch_to_frame(frameHist)
+
+                #append correct label to appropriate data row
+
+                if hb == True:
+                    otherData.append('House Bill')
+                if sb == True:
+                    otherData.append('Senate Bill')
+                if hcr == True:
+                    otherData.append('House Concurrent Resolution')
+                if hjm == True:
+                    otherData.append('House Joint Memorial')
+                if hm == True:
+                     otherData.append('House Memorial')
+                if hjr == True:
+                    otherData.append('House Joint Resolution')
+                if hr == True:
+                    otherData.append('House Resolution')
+                if scr == True:
+                    otherData.append('Senate Concurrent Resolution')
+                if sjm == True:
+                    otherData.append('Senate Joint Memorial')
+                if sm == True:
+                    otherData.append('Senate Memorial')
+                if sjr == True:
+                    otherData.append('Senate Joint Resolution')
+                if sr == True:
+                    otherData.append('Senate Resolution')
+
+
+                list2 = browser.find_elements_by_tag_name('body')[0].find_elements_by_tag_name('form')[0].find_elements_by_tag_name('b')[3].find_elements_by_tag_name('font')[0].get_attribute('innerHTML').split("<br>")
+                for k in range(len(list2)):
+                #for k in range(1):
+                    #print('this is k ' + str(k))
+                    for i in range(len(otherData)):
+                        writeData.append(otherData[i])
+                    #print('otherData len: '  +str(len(otherData)))
+
+                    writeData.append(list2[k].strip())
+
+                    with open('ColoradoBillHist.csv', 'a') as df:
+                        writer2 = csv.writer(df)
+                        writer2.writerow(writeData)
+                    df.close()
+                    histData = []
+                    writeData = []
+                    #print('writeData len end: ' + str(len(writeData)))
+
+
+
+                #otherData = []
+                browser.get(billURL)
+                #frame = browser.find_element_by_name('Bottom2')
+                #browser.switch_to_frame(frame)
+                #browser.page_source
+                frameBillRange = browser.find_element_by_name('bottom')
+                browser.switch_to_frame(frameBillRange)
+                browser.find_element_by_tag_name('form').find_element_by_name('Range').find_elements_by_tag_name('option')[billRange].click()
+                browser.find_element_by_tag_name('form').find_elements_by_tag_name('img')[2].click()
+                browser.switch_to_default_content()
+                frameAllHist = browser.find_element_by_name('Bottom2')
+                browser.switch_to_frame(frameAllHist)
+                browser.page_source
+                count = count +1
+                otherData = []
+
+            browser.get(billURL)
+            frameBillRange = browser.find_element_by_name('bottom')
+            browser.switch_to_frame(frameBillRange)
+
+
+
+
+
+
+
+
+#list2 = browser.find_elements_by_tag_name('br')
+
+
+#print(len(list2))
+#for i in range(len(list1)):
+    #if i <= 505:
+
+
+
+
+
+
+#click on first of 5 links in every year
+#inside this link make sure you are on correct bill range
+#click on history for each bill
+#write to csv
+#repeat
